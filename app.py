@@ -10,50 +10,72 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 
-# Initializes your app with your bot token and signing secret
-app = App(
-    token=os.environ.get("SLACK_BOT_TOKEN")
-)
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-# Initialize embeddings, Chroma vector store, and conversation memory
-embeddings = OpenAIEmbeddings()
-vec_search = Chroma(embedding_function=embeddings, persist_directory=".coupa")
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+# Initialize the Slack app
+def initialize_app():
+    return App(token=os.environ.get("SLACK_BOT_TOKEN"))
+
+# Initialize the Slack app
+app = initialize_app()
 
 # Initialize the conversational retrieval chain
-chain = ConversationalRetrievalChain.from_llm(
-    llm=ChatOpenAI(
-        temperature=0.9,
-        model_name="gpt-3.5-turbo",
-        verbose=True
-    ),
-    chain_type="stuff",
-    retriever=vec_search.as_retriever(),
-    memory=memory
-)
+def initialize_chain():
+    embeddings = OpenAIEmbeddings()
+    vec_search = Chroma(embedding_function=embeddings, persist_directory=".coupa")
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-# Define a function to handle incoming messages that mention the bot
+    return ConversationalRetrievalChain.from_llm(
+        llm=ChatOpenAI(
+            temperature=0.9,
+            model_name="gpt-4",#gpt-3.5-turbo",
+            verbose=True
+        ),
+        chain_type="stuff",
+        retriever=vec_search.as_retriever(k=10),
+        memory=memory
+    )
+
+# Process a message using the conversational retrieval chain
+def process_message(chain, message_text):
+    try:
+        resp = chain.run(message_text)
+        return resp
+    except Exception as e:
+        logger.error(f"Error processing message: {e}")
+        return "Sorry, something went wrong. Please try again later."
+
+# Handle incoming messages that mention the bot
 @app.message(".*")
 def handle_mention(message, say, logger):
-    print(message)
-    
-    # Get the text of the incoming message
-    message_text = message["text"]
-    #llm = get_chatai()
-    resp = chain.run(message_text)#({"question": message_text})
-    say(resp)
+    # Validate the message
+    if not message or "text" not in message or not message["text"]:
+        logger.warning("Invalid or empty message received")
+        return
 
+    # Log the message at DEBUG level
+    logger.debug(message)
+    message_text = message["text"]
+    response = process_message(chain, message_text)
+    say(response)
+
+# Handle app_mention events
 @app.event("app_mention")
 def handle_app_mention_events(body, say, logger):
-    print(body)
+    # Validate the event
+    if not body or "event" not in body or "text" not in body["event"] or not body["event"]["text"]:
+        logger.warning("Invalid or empty event received")
+        return
 
+    # Log the event at DEBUG level
+    logger.debug(body)
     message_text = body["event"]["text"]
-    #llm = get_chatai()
-    resp = chain.run(message_text)
-    say(resp)
-    
-# Start your app
+    response = process_message(chain, message_text)
+    say(response)
+
+# Main entry point
 if __name__ == "__main__":
+    chain = initialize_chain()
     SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"]).start()
-
-
