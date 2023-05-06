@@ -7,8 +7,7 @@ from argparse import ArgumentParser
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.chat_models import ChatOpenAI
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
+from langchain.chains import RetrievalQAWithSourcesChain
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -25,24 +24,22 @@ app = initialize_app()
 def initialize_chain():
     embeddings = OpenAIEmbeddings()
     vec_search = Chroma(embedding_function=embeddings, persist_directory=".coupa")
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-    return ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(
+    return RetrievalQAWithSourcesChain.from_chain_type(
+        ChatOpenAI(
             temperature=0.9,
-            model_name="gpt-4",#gpt-3.5-turbo",
+            model_name="gpt-3.5-turbo",#"gpt-4",#gpt-3.5-turbo",
             verbose=True
         ),
         chain_type="stuff",
-        retriever=vec_search.as_retriever(k=10),
-        memory=memory
+        retriever=vec_search.as_retriever(k=5)
     )
 
 # Process a message using the conversational retrieval chain
 def process_message(chain, message_text):
     try:
-        resp = chain.run(message_text)
-        return resp
+        resp = chain({"question":message_text}, return_only_outputs=True)
+        return resp["answer"]
     except Exception as e:
         logger.error(f"Error processing message: {e}")
         return "Sorry, something went wrong. Please try again later."
