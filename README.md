@@ -8,11 +8,11 @@ This repo contains a Slack plugin that utilizes OpenAI's language models to gene
 4. Set up the OpenAI API key.
 5. Build the Dockerfile by running the following command:
 ``` 
-   docker build -t slack-app .
+   docker build -t SlackGPT .
 ```
 6. Run the Dockerfile with the following command, making sure to pass in the environment variable values for SLACK_BOT_TOKEN, SLACK_APP_TOKEN, and OPENAI_API_KEY:
 ```  
-   docker run -it -e SLACK_BOT_TOKEN -e SLACK_APP_TOKEN -e OPENAI_API_KEY slack-app
+   docker run -it -e SLACK_BOT_TOKEN -e SLACK_APP_TOKEN -e OPENAI_API_KEY SlackGPT
 ```   
 ### Local Environment
 1. Clone this repo to your local environment

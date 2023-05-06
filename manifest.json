@@ -1,13 +1,13 @@
 {
     "display_information": {
-        "name": "SlackChat",
+        "name": "SlackGPT",
         "description": "Generative AI for Slack",
         "background_color": "#474247",
         "long_description": "An intelligent generative AI built on OpenAI's GPT3.5."
     },
     "features": {
         "bot_user": {
-            "display_name": "SlackChat",
+            "display_name": "SlackGPT",
             "always_online": false
         }
     },
