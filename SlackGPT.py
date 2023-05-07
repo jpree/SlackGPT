@@ -9,7 +9,6 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 persona_token = "&lt;persona&gt;"
 included_chat_history = 1
 bot_user_id = "U0561DSLA3U"
-#reaction_prefix = ""
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
