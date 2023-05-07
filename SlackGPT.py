@@ -65,7 +65,7 @@ def react_message(channel, timestamp, emote):
 #         return None
 def extract_and_add_reaction(text, channel, ts):
     # Search for the reaction token using a regular expression
-    match = re.search(r'~\w+~$', text)
+    match = re.search(r'\[(\w+)\]$', text)
     if match:
         reaction_token = match.group(0)
         # Remove the delimiter characters from the reaction token
