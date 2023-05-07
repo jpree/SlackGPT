@@ -6,10 +6,14 @@ class ChatBot:
         with open('persona_template.md', 'r') as file:
             # Read the content of the file into a string
             self._prompt_template = file.read()
+        with open('default_template.md', 'r') as file:
+            # Read the content of the file into a string
+            self._default_template = file.read()
         self._llm = ChatOpenAI(temperature=temperature, model_name=model_name,verbose=True)
-
     def get_prompt(self, message):
         return self._prompt_template.replace("<persona>", message)
+    def get_default_prompt(self):
+        return self._default_template
     def chat(self, messages):
         return self._llm(messages)    
     def get_ai_message(self, message):
