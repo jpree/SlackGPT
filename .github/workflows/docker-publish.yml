@@ -26,6 +26,6 @@ jobs:
       with:
         context: .
         push: true
-        tags: 
+        tags: |
           ghcr.io/${{ github.repository_owner }}/slack-gpt:${{ github.sha }}
           ghcr.io/${{ github.repository_owner }}/slack-gpt:latest
