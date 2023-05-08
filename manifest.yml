@@ -1,0 +1,37 @@
+display_information:
+  name: SlackChat
+  description: Generative AI for Slack
+  background_color: "#474247"
+  long_description: "An intelligent generative AI chat bot."
+features:
+  bot_user:
+    display_name: ChatSCDP
+    always_online: false
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - channels:read
+      - chat:write
+      - chat:write.public
+      - groups:history
+      - groups:read
+      - im:history
+      - im:read
+      - mpim:history
+      - mpim:read
+      - mpim:write
+      - reactions:write
+      - users:write
+      - users:read
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention
+      - message.im
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false

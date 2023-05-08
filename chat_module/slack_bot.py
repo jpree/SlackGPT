@@ -1,7 +1,7 @@
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from .config import SLACK_BOT_TOKEN, SLACK_APP_TOKEN, logger
-from .utils import process_message, extract_and_add_reaction
+from .utils import process_message
 
 class SlackBot:
     def __init__(self, chatbot):
@@ -19,7 +19,6 @@ class SlackBot:
             message_text=message["text"]
             channel_id=message["channel"]
             chat_response = process_message(self.chatbot, self.app, message_text, channel_id, self.bot_user_id)
-            chat_response = extract_and_add_reaction(self.app,chat_response,channel_id,ts)
             say(chat_response)
 
         @self.app.event("app_mention")
@@ -29,7 +28,6 @@ class SlackBot:
             channel_id = body["event"]["channel"]
             ts = body["event"]["ts"]
             chat_response = process_message(self.chatbot, self.app, message_text, channel_id, self.bot_user_id)
-            chat_response = extract_and_add_reaction(self.app,chat_response,channel_id,ts)
             say(chat_response)
 
     def start(self):

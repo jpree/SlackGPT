@@ -1,6 +1,6 @@
 import re
 from unittest.mock import Mock
-from chat_module.utils import get_purpose, process_message, extract_and_add_reaction
+from chat_module.utils import get_purpose, process_message
 
 def test_get_purpose(chatbot):
     app = Mock()
@@ -22,13 +22,3 @@ def test_process_message(chatbot):
 
     result = process_message(chatbot, app, "Hi there!", "C123456789", "U123456789")
     assert result == "Hello!"
-
-def test_extract_and_add_reaction():
-    app = Mock()
-    text = "Hello! [smile]"
-
-    result = extract_and_add_reaction(app, text, "C123456789", "123456789.123456")
-    assert result == "Hello!"
-    app.client.reactions_add.assert_called_once_with(
-        channel="C123456789", timestamp="123456789.123456", name="smile"
-    )
