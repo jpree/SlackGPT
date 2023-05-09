@@ -6,11 +6,11 @@ from .config import logger, PERSONA_TOKEN, INCLUDED_CHAT_HISTORY
 from .chat_bot import ChatBot
 
 # Get's the prompt and does replacements
-def get_purpose(chatbot: ChatBot, app, channel_id: str, bot_user_id: str) -> str:
+def get_purpose(chatbot: ChatBot, app, channel_id: str, bot_user_id: str, prompt_file: str) -> str:
     try:
         logger.info("Fetching channel purpose for channel ID: %s", channel_id)
 
-        prompt = chatbot.get_prompt()
+        prompt = chatbot.get_prompt(prompt_file)
         channel_type = "unknown"
         channel_privacy_type = "unknown"
         channel_name = "unknown"
@@ -55,7 +55,7 @@ def get_purpose(chatbot: ChatBot, app, channel_id: str, bot_user_id: str) -> str
     return prompt
 
 
-def get_chat_history(chatbot: ChatBot, app, channel_id: str, bot_user_id: str) -> List[str]:
+def get_chat_history(chatbot: ChatBot, app, channel_id: str, bot_user_id: str, prompt: str) -> List[str]:
     try:
         logger.info("Fetching chat history for channel ID: %s", channel_id)
         # Call the conversations_history method using the WebClient
@@ -65,7 +65,7 @@ def get_chat_history(chatbot: ChatBot, app, channel_id: str, bot_user_id: str) -
         logger.error(f"Error fetching chat history: {e}")
         return []
 
-    prompt=get_purpose(chatbot, app, channel_id, bot_user_id)
+    
     messages = []
     for msg in response["messages"]:
         message=f"{msg['user']}:{msg['text']}"
@@ -89,9 +89,21 @@ def react_message(app, channel: str, timestamp: str, emote: str) -> None:
 def process_message(chatbot: ChatBot, app, message_text: str, channel_id: str, bot_user_id: str) -> str:
     try:
         logger.info("Processing message: message_text: %s, channel ID: %s", message_text, channel_id)
-        chat_history = get_chat_history(chatbot, app, channel_id, bot_user_id)
-        response = chatbot.chat(chat_history)
-        return response.content
+        prompt = get_purpose(chatbot, app, channel_id, bot_user_id, "classifier.txt")
+        chat_history = get_chat_history(chatbot, app, channel_id, bot_user_id, prompt)
+        response = chatbot.chat(chat_history).content
+        #logger.info(response)
+        content=""
+        if "<IGNORE>" in response:
+            logger.info("Ignored")
+            logger.debug(response)
+        else:
+            logger.info("NOTIFY")
+            prompt = get_purpose(chatbot, app, channel_id, bot_user_id, "persona.txt")
+            chat_history = get_chat_history(chatbot, app, channel_id, bot_user_id, prompt)
+            content = chatbot.chat(chat_history).content
+
+        return content
     except Exception as e:
         logger.error(f"Error processing message: {e}")
         return "Sorry, something went wrong. Please try again later."

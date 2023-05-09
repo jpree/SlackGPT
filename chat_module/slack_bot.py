@@ -19,7 +19,8 @@ class SlackBot:
             message_text=message["text"]
             channel_id=message["channel"]
             chat_response = process_message(self.chatbot, self.app, message_text, channel_id, self.bot_user_id)
-            say(chat_response)
+            if chat_response:
+                say(chat_response)
 
         @self.app.event("app_mention")
         def handle_app_mention_events(body, say):
@@ -28,7 +29,12 @@ class SlackBot:
             channel_id = body["event"]["channel"]
             ts = body["event"]["ts"]
             chat_response = process_message(self.chatbot, self.app, message_text, channel_id, self.bot_user_id)
-            say(chat_response)
+            if chat_response:
+                say(chat_response)
+
+        @self.app.event("message")
+        def handle_message_events(body, logger):
+            logger.info("deleted?")
 
     def start(self):
         try:

@@ -6,7 +6,7 @@ load_dotenv()
 
 PERSONA_TOKEN = ";persona;"
 DEFAULT_CHAT_HISTORY = 10
-DEFAULT_LANGUAGE_MODEL = "gpt-3.5-turbo"
+DEFAULT_LANGUAGE_MODEL = "gpt-4"#"gpt-3.5-turbo"
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 SLACK_APP_TOKEN = os.environ.get("SLACK_APP_TOKEN")
 INCLUDED_CHAT_HISTORY = os.environ.get("INCLUDED_CHAT_HISTORY")
