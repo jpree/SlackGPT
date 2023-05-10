@@ -12,7 +12,7 @@ class ChatBot:
             self._prompt = file.read()
         return self._prompt
     def chat(self, chat_history: List[str]):
-        logger.info(chat_history)
+        #logger.info(chat_history)
         return self._llm(chat_history)    
     def get_ai_message(self, message: str):
         return AIMessage(content=message)

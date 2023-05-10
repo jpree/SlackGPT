@@ -43,6 +43,9 @@ def get_purpose(chatbot: ChatBot, app, channel_id: str, bot_user_id: str, prompt
             if 'topic' in response['channel']:
                 channel_topic = response['channel']['topic']['value']
 
+        members = get_participants(app, channel_id=channel_id)
+
+        prompt = prompt.replace("{CHANNEL_USERS}", json.dumps(members)[1:-1])
         prompt = prompt.replace("{CHANNEL_NAME}", json.dumps(channel_name)[1:-1])
         prompt = prompt.replace("{CHANNEL_TYPE}", json.dumps(channel_type)[1:-1])
         prompt = prompt.replace("{CHANNEL_PRIVACY}", json.dumps(channel_privacy_type)[1:-1])
@@ -86,24 +89,55 @@ def react_message(app, channel: str, timestamp: str, emote: str) -> None:
         timestamp=timestamp,
         name=emote)
 
-def process_message(chatbot: ChatBot, app, message_text: str, channel_id: str, bot_user_id: str) -> str:
+def process_message(persona_ai: ChatBot, classifier_ai: ChatBot, app, message_text: str, channel_id: str, bot_user_id: str) -> str:
     try:
-        logger.info("Processing message: message_text: %s, channel ID: %s", message_text, channel_id)
-        prompt = get_purpose(chatbot, app, channel_id, bot_user_id, "classifier.txt")
-        chat_history = get_chat_history(chatbot, app, channel_id, bot_user_id, prompt)
-        response = chatbot.chat(chat_history).content
+        logger.info("Invoking classifier: channel ID: %s", channel_id)
+        prompt = get_purpose(persona_ai, app, channel_id, bot_user_id, "classifier.txt")
+        chat_history = get_chat_history(persona_ai, app, channel_id, bot_user_id, prompt)
+        response = classifier_ai.chat(chat_history).content
         #logger.info(response)
         content=""
         if "<IGNORE>" in response:
             logger.info("Ignored")
             logger.debug(response)
         else:
-            logger.info("NOTIFY")
-            prompt = get_purpose(chatbot, app, channel_id, bot_user_id, "persona.txt")
-            chat_history = get_chat_history(chatbot, app, channel_id, bot_user_id, prompt)
-            content = chatbot.chat(chat_history).content
+            logger.info("Invoking Persona: channel ID: %s", channel_id)
+            prompt = get_purpose(persona_ai, app, channel_id, bot_user_id, "persona.txt")
+            chat_history = get_chat_history(persona_ai, app, channel_id, bot_user_id, prompt)
+            content = persona_ai.chat(chat_history).content
 
         return content
     except Exception as e:
         logger.error(f"Error processing message: {e}")
+        return "Sorry, something went wrong. Please try again later."
+    
+def get_participants(app, channel_id):
+    try:
+        # Get the list of members in the conversation
+        result = app.client.conversations_members(channel=channel_id)
+        member_ids = result["members"]
+
+        # Get user info for each member
+        members = []
+        for member_id in member_ids:
+            user_info = app.client.users_info(user=member_id)
+            user = user_info["user"]
+
+            # Extract the required fields and create a new dictionary for the user
+            user_data = {
+                "id": user["id"],
+                "name": user["name"],
+                "deleted": user["deleted"],
+                "real_name": user["real_name"],
+                "tz": user["tz"],
+                "tz_label": user["tz_label"],
+                "is_bot": user["is_bot"],
+                "title": user["profile"].get("title", "")
+            }
+            members.append(user_data)
+
+        return members
+    
+    except SlackApiError as e:
+        logger.error(f"Error: {e}")
         return "Sorry, something went wrong. Please try again later."
